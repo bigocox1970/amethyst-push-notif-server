@@ -6,14 +6,15 @@ import { finalizeEvent, generateSecretKey, verifyEvent } from 'nostr-tools/pure'
 import { RelayPool } from './relay-pool.js'
 import { LRUCache } from 'lru-cache'
 
-import { 
-    registerInDatabaseTuples, 
-    getAllKeys, 
-    getAllRelays, 
-    getTokensByPubKey, 
+import {
+    registerInDatabaseTuples,
+    getAllKeys,
+    getAllRelays,
+    getTokensByPubKey,
     deleteToken,
     deleteRelay,
-    checkIfThereIsANewRelay
+    checkIfThereIsANewRelay,
+    initializeDatabase
 } from './database.mjs'
 
 const app = express()
@@ -273,4 +274,10 @@ function createWrap(recipientPubkey, event, tags = []) {
     return finalizeEvent(wrapTemplate, wrapperPrivkey)
   }
 
-restartRelayPool()
+// Initialize database and then start relay pool
+initializeDatabase().then(() => {
+    restartRelayPool()
+}).catch(err => {
+    console.error('Failed to initialize database:', err)
+    process.exit(1)
+})

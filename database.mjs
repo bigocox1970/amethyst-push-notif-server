@@ -1,6 +1,24 @@
 import { pgPool } from './database-config.mjs'
 import format from 'pg-format'
 
+export async function initializeDatabase() {
+    try {
+        await pgPool.query(`
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                ID SERIAL PRIMARY KEY,
+                PUB_KEY VARCHAR(255) NOT NULL,
+                RELAY VARCHAR(255) NOT NULL,
+                TOKEN VARCHAR(255) NOT NULL,
+                UNIQUE (PUB_KEY, RELAY, TOKEN)
+            );
+        `);
+        console.log('✅ Database initialized successfully');
+    } catch (error) {
+        console.error('❌ Failed to initialize database:', error);
+        throw error;
+    }
+}
+
 export async function getTokensByPubKey(pubkey) {
     const result = await pgPool.query(
         `SELECT DISTINCT TOKEN AS token, MAX(ID) as max_id
